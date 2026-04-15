@@ -1,3 +1,43 @@
+## CalibAnything for Riibotics
+
+This package provides an automatic and target-less LiDAR-camera extrinsic calibration method using Segment Anything Model. The related paper is [Calib-Anything: Zero-training LiDAR-Camera Extrinsic Calibration Method Using Segment Anything](https://arxiv.org/abs/2306.02656). For more calibration codes, please refer to the link <a href="https://github.com/PJLab-ADG/SensorsCalibration" title="SensorsCalibration">SensorsCalibration</a>.
+
+We adds some modifications on code and simple program scripts for data processing to perform calibration between the camera on the forklift of Riibotics and the lidar, and provides guidelines for good calibration.
+
+### Basic operation guideline
+1. This code is not available on PCs without GPUs and is recommended for operation on personal laptops or desktops with plenty of process performance.
+
+2. Please select an appropriate scene for performing calibration. At this time, LiDAR and camera should have similar views as much as possible. Recognize that calibration is impossible if the overlapping area is too small. The criteria for a good view are as follows: The more planes with various depths, the better. Auto segment algorithms automatically deploy objects to make the segment work, and avoid items that do not. Also, it's more advantageous to choose an indoor environment than an outdoor one. Avoid areas with infinite depth, such as windows.
+
+3. Get at least 30 point clouds and camera images while still in that scene. The current program supports either a combination of .pcd/.png or a rosbag form.
+
+4. Use the dataset processing script to process the data appropriately for the program and place it in the appropriate position.
+
+5. You must set the default settings (calib.json) for the program. (Intrinsic / Initial Extrinsic, search_range, min_plane_point_num, cluster_tolerance ...)
+
+6. Validate performance based on the resulting image.
+
+### Prerequisites for Ubuntu 22.04 / ROS2 Humble / RTX 4060
+- numpy (==2.4.4)
+- opencv-python (==4.13.0.92)
+- torch (==2.9.1)
+- torchvision (==0.24.1)
+- pycocotools (=2.0.11)
+- onnx (==1.16.1)
+- onnxruntime (==1.24.4)
+- matplotlib
+- cv-bridge (==4.1.0)
+- rosbag2_py (==0.26.9)
+- rclpy (==7.1.6)
+- rosidl_runtime_py (==0.13.1)
+- sensor_msgs_py (==5.3.6)
+
+- PCL 1.10
+- Eigen3
+- OpenCV
+- jsoncpp
+
+## ---------------------------------Default README.md --------------------------------------------
 ## CalibAnything
 
 This package provides an automatic and target-less LiDAR-camera extrinsic calibration method using Segment Anything Model. The related paper is [Calib-Anything: Zero-training LiDAR-Camera Extrinsic Calibration Method Using Segment Anything](https://arxiv.org/abs/2306.02656). For more calibration codes, please refer to the link <a href="https://github.com/PJLab-ADG/SensorsCalibration" title="SensorsCalibration">SensorsCalibration</a>.
