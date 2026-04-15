@@ -37,7 +37,18 @@ We adds some modifications on code and simple program scripts for data processin
 - OpenCV
 - jsoncpp
 
-## ---------------------------------Default README.md --------------------------------------------
+### Compile
+```shell
+cd CalibAnything
+mkdir build
+cd build
+cmake ..
+make
+```
+
+### Run example for Riibotics
+
+# Default README.md
 ## CalibAnything
 
 This package provides an automatic and target-less LiDAR-camera extrinsic calibration method using Segment Anything Model. The related paper is [Calib-Anything: Zero-training LiDAR-Camera Extrinsic Calibration Method Using Segment Anything](https://arxiv.org/abs/2306.02656). For more calibration codes, please refer to the link <a href="https://github.com/PJLab-ADG/SensorsCalibration" title="SensorsCalibration">SensorsCalibration</a>.
