@@ -28,7 +28,7 @@ Sample segmented projection preview:
 
 Refined segmented projection:
 
-![Riibotics MID70 sample rgb image origin](docs/asserts/image_raw.png)
+![Riibotics MID70 sample rgb image origin](docs/assets/image_raw.png)
 ![Riibotics MID70 sample refined segmented projection](docs/assets/riibotics_mid70_refined_proj_seg.png)
 
 ## Compatibility Summary
