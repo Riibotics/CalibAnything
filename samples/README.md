@@ -7,13 +7,7 @@ This directory stores sample documentation for CalibAnything.
 - `riibotics_mid70_accumulated_success.zip`
 
 This sample archive is distributed separately from the repository because it
-contains prepared dataset assets.
-
-Suggested distribution options:
-
-- Google Drive
-- GitHub Release asset
-- Internal file storage
+contains prepared dataset assets. Data is located at Synology (Riibotics)
 
 The archive should contain:
 
