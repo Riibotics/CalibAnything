@@ -58,9 +58,8 @@ def main(input_dir:str, output_dir:str):
                             bottom = min(i + margin_inside, H - 1)
                             mask_new1[top:bottom, left:right] = 1
 
-                mask_out = np.zeros(mask_ori.shape)
+                mask_out = np.zeros(mask_ori.shape, dtype=np.uint8)
                 mask_out[np.logical_and(mask_ori, mask_new1)] = 255
-                np.asarray(mask_out, dtype=np.uint8)
                 cv2.imwrite(output_dir_sub + file, mask_out)
                 n += 1
         

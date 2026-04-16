@@ -1,6 +1,7 @@
 lib/
 bin/
 build/
+CMakeFiles/
 cmake-build-debug/
 cmake-build-release/
 .idea
@@ -8,4 +9,14 @@ cmake-build-release/
 __pycache__/
 *.py[cod]
 *$py.class
-
+data/
+dataset1/
+data_processing/dataset1/
+extrinsic.txt
+extrinsic1.txt
+init_proj.png
+init_proj_seg.png
+refined_proj.png
+refined_proj_seg.png
+samples/riibotics_mid70_accumulated_success/
+samples/*.zip

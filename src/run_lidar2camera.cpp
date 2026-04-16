@@ -97,6 +97,22 @@ void readConfig(std::string json_file, JsonParams &json_params)
             json_params.is_down_sample = true;
             json_params.down_sample_voxel = root["params"]["down_sample"]["voxel_m"].asFloat();
         }
+        if (root["params"].isMember("segmentation"))
+        {
+            Json::Value segmentation = root["params"]["segmentation"];
+            if (segmentation.isMember("plane_distance_threshold_m"))
+            {
+                json_params.plane_distance_threshold = segmentation["plane_distance_threshold_m"].asFloat();
+            }
+            if (segmentation.isMember("normal_k_search"))
+            {
+                json_params.normal_k_search = segmentation["normal_k_search"].asInt();
+            }
+            if (segmentation.isMember("euclidean_min_cluster_size"))
+            {
+                json_params.euclidean_min_cluster_size = segmentation["euclidean_min_cluster_size"].asInt();
+            }
+        }
 
         std::cout << "Reading json file complete!" << std::endl;
     }
