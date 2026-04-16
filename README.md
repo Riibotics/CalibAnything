@@ -24,6 +24,12 @@ A reference sample is documented under [samples/README.md](/ws/perception_ws/src
 You can use this sample to verify that the executable runs correctly before
 trying your own bag data.
 
+Sample segmented projection preview:
+
+Refined segmented projection:
+
+![Riibotics MID70 sample refined segmented projection](docs/assets/riibotics_mid70_refined_proj_seg.png)
+
 ## Compatibility Summary
 
 The helper scripts are compatible with the JSON schema and folder layout used by
