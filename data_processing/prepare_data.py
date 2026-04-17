@@ -19,13 +19,13 @@ def parse_args():
     )
     parser.add_argument(
         "--bag-path",
-        default="./data/rosbag2_2026_04_16-11_24_40_0.db3",
+        default="./data/rosbag2_2026_04_17-10_29_33_0.db3",
         help="Path to a rosbag2 directory. If a .db3/.mcap file is given, its parent directory is used.",
     )
     parser.add_argument("--lidar-topic", default="/fork_lidar")
     parser.add_argument("--image-topic", default="/fork_camera/rgb")
     parser.add_argument("--cam-info-topic", default="/fork_camera/rgb_info")
-    parser.add_argument("--output-dir", default="./dataset1")
+    parser.add_argument("--output-dir", default="./dataset2")
     parser.add_argument(
         "--pc-duration-sec",
         type=float,
@@ -41,15 +41,25 @@ def parse_args():
     return parser.parse_args()
 
 
-def resolve_bag_uri(raw_path: str) -> Path:
+def resolve_bag_uri(raw_path: str) -> tuple[Path, str]:
+    """Return (uri, storage_id) for rosbag2_py.StorageOptions.
+
+    If a .db3 / .mcap file is given directly we use it as-is so that the
+    reader does NOT fall back to the directory's metadata.yaml (which may
+    reference a different file).
+    """
     bag_path = Path(raw_path).expanduser().resolve()
     if not bag_path.exists():
         raise FileNotFoundError(f"Bag path does not exist: {bag_path}")
 
-    if bag_path.is_file() and bag_path.suffix in {".db3", ".mcap"}:
-        return bag_path.parent
+    if bag_path.is_file():
+        if bag_path.suffix == ".db3":
+            return bag_path, "sqlite3"
+        if bag_path.suffix == ".mcap":
+            return bag_path, "mcap"
 
-    return bag_path
+    # Directory bag (contains metadata.yaml)
+    return bag_path, ""
 
 
 def make_output_dirs(output_dir: Path):
@@ -163,13 +173,18 @@ def build_calib_config(cam_k, cam_dist, thread_count):
         "pc_format": ".pcd",
         "file_name": ["000000"],
         "params": {
-            "search_range": {"rot_deg": 10.0, "trans_m": 0.5},
-            "min_plane_point_num": 100,
-            "cluster_tolerance": 0.2,
-            "point_range": {"top": 0.0, "bottom": 1.0},
+            "search_range": {"rot_deg": 5.0, "trans_m": 0.25},
+            "min_plane_point_num": 250,
+            "cluster_tolerance": 0.1,
+            "point_range": {"top": 0.12, "bottom": 0.88},
             "search_num": 1000,
             "thread": {"is_multi_thread": thread_count > 1, "num_thread": thread_count},
-            "down_sample": {"is_valid": True, "voxel_m": 0.1},
+            "down_sample": {"is_valid": True, "voxel_m": 0.04},
+            "segmentation": {
+                "plane_distance_threshold_m": 0.1,
+                "normal_k_search": 30,
+                "euclidean_min_cluster_size": 150,
+            },
         },
     }
 
@@ -178,11 +193,11 @@ def main():
     args = parse_args()
 
     output_dir = Path(args.output_dir).expanduser().resolve()
-    bag_uri = resolve_bag_uri(args.bag_path)
+    bag_uri, storage_id = resolve_bag_uri(args.bag_path)
     make_output_dirs(output_dir)
 
     reader = rosbag2_py.SequentialReader()
-    storage_options = rosbag2_py.StorageOptions(uri=str(bag_uri), storage_id="")
+    storage_options = rosbag2_py.StorageOptions(uri=str(bag_uri), storage_id=storage_id)
     converter_options = rosbag2_py.ConverterOptions(
         input_serialization_format="cdr",
         output_serialization_format="cdr",

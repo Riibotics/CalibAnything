@@ -31,6 +31,9 @@ Refined segmented projection:
 ![Riibotics MID70 sample rgb image origin](docs/assets/image_raw.png)
 ![Riibotics MID70 sample refined segmented projection](docs/assets/riibotics_mid70_refined_proj_seg.png)
 
+![Riibotics Sample RGB origin 2](docs/assets/image_raw_2.png)
+![Riibotics Sample 2 segmented projection](docs/assets/proj2.png)
+
 ## Compatibility Summary
 
 The helper scripts are compatible with the JSON schema and folder layout used by
@@ -191,6 +194,66 @@ The upstream executable reads the following fields from `calib.json`:
 - `params.search_num`
 - `params.thread`
 - `params.down_sample`
+- `params.segmentation`
+
+#### Recommended `params` Values
+
+The values below are tuned for the Riibotics fork-truck setup (Livox MID-70 +
+OAK-D camera at ~1.5 m mounting distance). `prepare_data.py` generates these
+defaults automatically.
+
+```json
+"params": {
+    "search_range": {
+        "rot_deg": 5.0,
+        "trans_m": 0.25
+    },
+    "min_plane_point_num": 250,
+    "cluster_tolerance": 0.1,
+    "point_range": {
+        "top": 0.12,
+        "bottom": 0.88
+    },
+    "search_num": 1000,
+    "thread": {
+        "is_multi_thread": true,
+        "num_thread": 8
+    },
+    "down_sample": {
+        "is_valid": true,
+        "voxel_m": 0.04
+    },
+    "segmentation": {
+        "plane_distance_threshold_m": 0.1,
+        "normal_k_search": 30,
+        "euclidean_min_cluster_size": 150
+    }
+}
+```
+
+#### Parameter Descriptions
+
+| Parameter | Description | Tuning Guide |
+|---|---|---|
+| `search_range.rot_deg` | Rotation search range (±degrees) around the initial `T_lidar_to_cam`. Calibration will fail if the true error exceeds this range. | Increase when mounting uncertainty is high. Widening too much raises computation time. |
+| `search_range.trans_m` | Translation search range (±m) around the initial `T_lidar_to_cam`. | Same principle as `rot_deg`. |
+| `min_plane_point_num` | Minimum number of points required for a cluster to be accepted as a valid plane candidate. Clusters below this threshold are discarded. | Decrease for sparse LiDARs or distant targets. |
+| `cluster_tolerance` | Euclidean distance threshold (m) for grouping points into the same cluster. | Increase for lower-resolution LiDARs (recommended 0.1–0.3 m). |
+| `point_range.top` | Upper height cut-off as a fraction (0.0–1.0) of the total z extent. Points above this fraction are removed. Used to discard ceiling structures. | Lower the value if unwanted top-of-scene noise is present. |
+| `point_range.bottom` | Lower height cut-off as a fraction (0.0–1.0) of the total z extent. Points below this fraction are removed. Used to discard the floor plane. | Raise the value if unwanted floor points pollute the cloud. |
+| `search_num` | Number of optimization iterations performed during the search. | Default of 1000 is sufficient in most cases. Increase if convergence quality is poor. |
+| `thread.is_multi_thread` | Enables multi-threaded optimization. | Set to `true` whenever more than one CPU core is available. |
+| `thread.num_thread` | Number of threads to use. | Match to the available CPU core count. |
+| `down_sample.is_valid` | Enables voxel downsampling to reduce the point count and speed up processing. | Always `true` for dense point clouds. |
+| `down_sample.voxel_m` | Voxel size (m) for downsampling. Points within one voxel are merged into a single point. | Larger values are faster but reduce accuracy. Tune to LiDAR density (recommended 0.03–0.1 m). |
+| `segmentation.plane_distance_threshold_m` | Maximum distance (m) for a point to be considered an inlier during RANSAC plane fitting. | Increase slightly in noisy environments. |
+| `segmentation.normal_k_search` | Number of nearest neighbours used to estimate point normals. | Decrease for sparse clouds; increase for dense clouds. |
+| `segmentation.euclidean_min_cluster_size` | Minimum point count for a cluster to be accepted during Euclidean clustering. | Adjust according to LiDAR density and target distance. |
+
+> **Note** If the initial `T_lidar_to_cam` error is larger than `search_range`,
+> calibration will fail. Temporarily widen `rot_deg` / `trans_m` when the
+> initial estimate is uncertain. For sparse LiDARs, increase `voxel_m` and
+> reduce `min_plane_point_num`.
 
 The most important practical item is `T_lidar_to_cam`. The default matrix in
 `prepare_data.py` is only a rough placeholder. If your true installation error
