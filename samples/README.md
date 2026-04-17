@@ -4,7 +4,11 @@ This directory stores sample documentation for CalibAnything.
 
 ### Available sample package
 
+#### Processed Data Version
 - `riibotics_mid70_accumulated_success.zip`
+
+#### ROSBAG Version
+- `rosbag2_2026_04_17-10_29_33_0.db3`
 
 This sample archive is distributed separately from the repository because it
 contains prepared dataset assets. Data is located at Synology (Riibotics)
