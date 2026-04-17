@@ -29,24 +29,25 @@ The archive should contain:
 
 #### Option A — Processed Data Version (`riibotics_mid70_accumulated_success.zip`)
 
-Use this option to verify the C++ calibration binary immediately, without
-running SAM or any data preparation scripts.
+Use this option to verify the full pipeline with pre-prepared data, skipping
+the rosbag extraction step. SAM mask generation is also skipped because the
+processed masks are already included in the archive.
 
 1. Download `riibotics_mid70_accumulated_success.zip` from Synology (Riibotics).
-2. Extract it under `samples/`:
+2. Extract it so the dataset lands at `dataset1/`:
    ```bash
-   unzip riibotics_mid70_accumulated_success.zip -d samples/
+   unzip riibotics_mid70_accumulated_success.zip
+   # The archive unpacks into riibotics_mid70_accumulated_success/input/
+   # Copy or symlink it as dataset1:
+   cp -r riibotics_mid70_accumulated_success/input ./dataset1
    ```
-3. Build the project if not already built:
+3. Run the pipeline (build + calibration only; SAM steps are skipped because
+   `processed_masks/` is already populated):
    ```bash
-   cmake -S . -B build && cmake --build build -j"$(nproc)"
+   DATA_DIR=$(pwd)/dataset1 ./run_pipeline.sh
    ```
-4. Run the calibration binary directly:
-   ```bash
-   ./bin/run_lidar2camera ./samples/riibotics_mid70_accumulated_success/input/calib.json
-   ```
-5. Compare the output files written to the working directory against the
-   reference images inside `samples/riibotics_mid70_accumulated_success/output/`:
+4. Compare the output files written to the repository root against the
+   reference images inside `riibotics_mid70_accumulated_success/output/`:
    - `init_proj.png` / `init_proj_seg.png`
    - `refined_proj.png` / `refined_proj_seg.png`
    - `extrinsic.txt`
