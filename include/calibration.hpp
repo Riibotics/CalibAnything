@@ -38,8 +38,10 @@ struct JsonParams
     std::vector<double> dist;
     std::vector<std::string> img_files, mask_dirs, lidar_files;
     bool is_gt_available = false, is_down_sample = false;
-    float search_range_rot, search_range_trans, cluster_tolerance, point_range_top, point_range_bottom, down_sample_voxel;
-    int N_FILE, min_plane_point_num, num_thread = 0, search_num;
+    float search_range_rot, search_range_trans, cluster_tolerance, point_range_top, point_range_bottom,
+        down_sample_voxel, plane_distance_threshold = 0.2f;
+    int N_FILE, min_plane_point_num, num_thread = 0, search_num, normal_k_search = 40,
+        euclidean_min_cluster_size = 50;
 };
 
 class Calibrator

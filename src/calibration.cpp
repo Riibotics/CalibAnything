@@ -24,7 +24,7 @@ void Create_ColorBar()
         pColor[ba * 3 + 1] = S[s / 13];
         pColor[ba * 3 + 2] = V[v / 13 / 3];
     }
-    cv::cvtColor(color, color_bar, CV_HSV2BGR);
+    cv::cvtColor(color, color_bar, cv::COLOR_HSV2BGR);
 }
 
 
@@ -103,7 +103,12 @@ void Calibrator::ProcessPointcloud(const pcl::PointCloud<pcl::PointXYZI>::Ptr pc
 
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_tmp(new pcl::PointCloud<pcl::PointXYZI>);
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_tmp_ds(new pcl::PointCloud<pcl::PointXYZI>);
-        float kLeafSize = 0.1;
+        float kLeafSize = params_.down_sample_voxel;
+        if (kLeafSize <= 0)
+        {
+            std::cout << "Invalid downsample voxel size. Fallback to 0.1m." << std::endl;
+            kLeafSize = 0.1f;
+        }
         pcl::VoxelGrid<pcl::PointXYZI> filter_map;
         filter_map.setLeafSize(kLeafSize, kLeafSize, kLeafSize);
         cloud_downsampled->clear();
@@ -170,7 +175,7 @@ int Calibrator::Segment_pc(const pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,
     pcl::search::KdTree<pcl::PointXYZI>::Ptr tree(
         new pcl::search::KdTree<pcl::PointXYZI>());
     norm_est.setSearchMethod(tree);
-    norm_est.setKSearch(40);
+    norm_est.setKSearch(params_.normal_k_search);
     // norm_est.setRadiusSearch(5);
     norm_est.setInputCloud(cloud);
     norm_est.compute(*normals);
@@ -184,7 +189,7 @@ int Calibrator::Segment_pc(const pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,
     seg.setNormalDistanceWeight(0.2);
     seg.setMethodType(pcl::SAC_RANSAC);
     seg.setMaxIterations(3000);
-    seg.setDistanceThreshold(0.2);
+    seg.setDistanceThreshold(params_.plane_distance_threshold);
     seg.setInputCloud(cloud);
     seg.setInputNormals(normals);
     seg.segment(*indices_plane, *coefficients);
@@ -216,7 +221,7 @@ int Calibrator::Segment_pc(const pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,
     std::vector<pcl::PointIndices> eu_cluster_indices;
     ec.setClusterTolerance(params_.cluster_tolerance);
     ec.setMaxClusterSize(10000);
-    ec.setMinClusterSize(50);
+    ec.setMinClusterSize(params_.euclidean_min_cluster_size);
     ec.setSearchMethod(tree);
     ec.setInputCloud(cloud);
     ec.setIndices(indices_notplane);
