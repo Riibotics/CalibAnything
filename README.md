@@ -127,7 +127,8 @@ python3 data_processing/prepare_data.py \
   --lidar-topic /fork_lidar \
   --image-topic /fork_camera/rgb \
   --cam-info-topic /fork_camera/rgb_info \
-  --output-dir ./dataset1
+  --output-dir ./dataset1 \
+  --initial-transform-preset ros_lidar_to_opencv
 ```
 
 For 3-5 matched single-frame samples:
@@ -155,6 +156,9 @@ Notes:
 - The generated `calib.json` is only a starting point. You should still review
   `T_lidar_to_cam`, `search_range`, `cluster_tolerance`, and
   `min_plane_point_num`.
+- If the initial projection appears rotated 180 degrees in the image plane, use
+  `--initial-transform-preset ros_lidar_to_opencv_roll_180` and verify
+  `init_proj_seg.png` before trusting the refined result.
 
 The generated folder layout is:
 
@@ -258,7 +262,9 @@ defaults automatically.
 The most important practical item is `T_lidar_to_cam`. The default matrix in
 `prepare_data.py` is only a rough placeholder. If your true installation error
 is larger than the search range, calibration can fail even though the JSON
-format is valid.
+format is valid. `prepare_data.py` provides
+`--initial-transform-preset ros_lidar_to_opencv_roll_180` for rigs where the
+LiDAR projection is 180 degrees out in the camera image plane.
 
 ### 3. Run the Full Pipeline
 
@@ -285,6 +291,38 @@ CALIB_JSON=/abs/path/to/dataset1/calib.json \
 SAM_DIR=/abs/path/to/segment-anything \
 BUILD_DIR=/abs/path/to/build \
 ./run_pipeline.sh
+```
+
+For the local Riibotics calibration bags, use the archived-result helper instead:
+
+```bash
+bash scripts/run_roll180_calibration.sh
+```
+
+To run every `dataset/multimodal_calib_*` bag:
+
+```bash
+bash scripts/run_all_roll180_calibrations.sh
+```
+
+Each run is copied into:
+
+```text
+calibration_results/<dataset_name>/<run_name>/
+├── config/
+│   └── calib.json
+├── input/
+│   ├── 000000.png
+│   └── 000000.pcd
+├── logs/
+│   └── calibration.log
+├── output/
+│   ├── extrinsic.txt
+│   ├── init_proj.png
+│   ├── init_proj_seg.png
+│   ├── refined_proj.png
+│   └── refined_proj_seg.png
+└── summary.json
 ```
 
 ## Running the Upstream Executable Directly

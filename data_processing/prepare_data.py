@@ -38,6 +38,16 @@ def parse_args():
         default=min(4, os.cpu_count() or 4),
         help="Thread count written into calib.json.",
     )
+    parser.add_argument(
+        "--initial-transform-preset",
+        choices=("ros_lidar_to_opencv", "ros_lidar_to_opencv_roll_180"),
+        default="ros_lidar_to_opencv",
+        help=(
+            "Initial LiDAR-to-camera transform written into calib.json. "
+            "Use ros_lidar_to_opencv_roll_180 when the projected cloud is "
+            "rotated 180 degrees in the image plane."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -145,7 +155,28 @@ def image_msg_to_bgr(msg):
     return image
 
 
-def build_calib_config(cam_k, cam_dist, thread_count):
+def build_initial_transform(preset: str):
+    """Return a configurable initial LiDAR-to-OpenCV-camera transform."""
+    if preset == "ros_lidar_to_opencv":
+        return [
+            [0.0, -1.0, 0.0, 0.0],
+            [0.0, 0.0, -1.0, 0.0],
+            [1.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]
+
+    if preset == "ros_lidar_to_opencv_roll_180":
+        return [
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [1.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]
+
+    raise ValueError(f"Unsupported initial transform preset: {preset}")
+
+
+def build_calib_config(cam_k, cam_dist, thread_count, initial_transform_preset):
     k_matrix = [
         [cam_k[0], cam_k[1], cam_k[2]],
         [cam_k[3], cam_k[4], cam_k[5]],
@@ -158,12 +189,7 @@ def build_calib_config(cam_k, cam_dist, thread_count):
         "T_lidar_to_cam": {
             "rows": 4,
             "cols": 4,
-            "data": [
-                [0.0, -1.0, 0.0, 0.0],
-                [0.0, 0.0, -1.0, 0.0],
-                [1.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 1.0],
-            ],
+            "data": build_initial_transform(initial_transform_preset),
         },
         "T_lidar_to_cam_gt": {"available": False},
         "img_folder": "/images",
@@ -288,7 +314,12 @@ def main():
     cv2.imwrite(str(image_path), image_to_save)
     save_ascii_pcd(accumulated_points, pcd_path)
 
-    calib_config = build_calib_config(cam_k, cam_dist, max(args.threads, 1))
+    calib_config = build_calib_config(
+        cam_k,
+        cam_dist,
+        max(args.threads, 1),
+        args.initial_transform_preset,
+    )
     with calib_path.open("w", encoding="utf-8") as file_obj:
         json.dump(calib_config, file_obj, indent=4)
 
@@ -297,6 +328,7 @@ def main():
         f"Saved accumulated point cloud ({len(accumulated_points)} points) to: {pcd_path}"
     )
     print(f"Generated config: {calib_path}")
+    print(f"Initial transform preset: {args.initial_transform_preset}")
     print("Review T_lidar_to_cam and search_range in calib.json before running calibration.")
 
 
